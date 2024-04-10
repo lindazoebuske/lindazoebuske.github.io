@@ -1,113 +1,116 @@
-import java.util.Arrays
-import java.util.Scanner
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Spiel</title>
+    <style>
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+            border: 1px solid black;
+            font-size: 48px;
+            text-align: center;
+            line-height: 100px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe Spiel</h1>
+    <div id="board-container"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const boardContainer = document.getElementById('board-container');
+            const ROWS = 3;
+            const COLS = 3;
+            let currentPlayer = 'X';
+            let board = Array.from({ length: ROWS }, () => Array(COLS).fill(' '));
 
-class Game {
-    private val board = Array(3) { CharArray(3) { ' ' } }
-    //layout of board
-    private var currentPlayer = 'X'
-    // x as first player
-
-    fun startGame() {
-        println("start")
-        printBoard()
-        //print the board
-
-        var gameOver = false
-            //false caus not over yet
-        while (!gameOver) {
-            //while until game over
-            if (currentPlayer == '0') {
-
-            }
-            else { val (row, col) = getPlayerMove()
-
-            //get coordinates of player
-            if (isValidMove(row, col)) {
-                //if move is valid
-                board[row][col] = currentPlayer
-                //update board by placing currentplayer (x, 0)
-                printBoard()
-                if (isWinningMove(row, col)) {
-                    //checks if current move results in win
-                    println("$currentPlayer wins")
-                    gameOver = true
-                    //if yes end loop
-                } else if (isBoardFull()) {
-                    //if not but board full
-                    println("unentschiden")
-                    gameOver = true
-                } else {
-                    //switch player
-                    currentPlayer = if (currentPlayer == 'X') 'O' else 'X'
+            // Funktion zum Rendern des Spielfelds
+            function renderBoard() {
+                boardContainer.innerHTML = '';
+                for (let i = 0; i < ROWS; i++) {
+                    for (let j = 0; j < COLS; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = i;
+                        cell.dataset.col = j;
+                        cell.textContent = board[i][j];
+                        cell.addEventListener('click', handleCellClick);
+                        boardContainer.appendChild(cell);
+                    }
+                    boardContainer.appendChild(document.createElement('br'));
                 }
-            } else {
-                println("Invalid move")
             }
 
-        }
+            // Funktion zum Behandeln von Klicks auf Zellen
+            function handleCellClick(event) {
+                const row = parseInt(event.target.dataset.row);
+                const col = parseInt(event.target.dataset.col);
+                if (board[row][col] === ' ') {
+                    board[row][col] = currentPlayer;
+                    renderBoard();
+                    if (checkWin(row, col)) {
+                        alert(currentPlayer + ' wins!');
+                        resetGame();
+                    } else if (checkDraw()) {
+                        alert('Unentschieden!');
+                        resetGame();
+                    } else {
+                        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    }
+                }
             }
-    }
 
-
-    private fun printBoard() {
-        println("  0 1 2")
-        //boRD LAYOUT
-        for (i in board.indices) {
-            //go over each outher indices of the board
-            print("$i ")
-            //prins brow index on each iteratiuion followed by spoace
-            for (j in board[i].indices) {
-                //same for each cell
-                print("${board[i][j]} ")
-                //same for each cell
+            // Funktion zum Überprüfen auf einen Gewinn
+            function checkWin(row, col) {
+                const symbol = board[row][col];
+                // Überprüfen Sie horizontal, vertikal und diagonal
+                return (
+                    checkLine(row, col, 0, 1, symbol) || // horizontal
+                    checkLine(row, col, 1, 0, symbol) || // vertikal
+                    checkLine(row, col, 1, 1, symbol) || // diagonal
+                    checkLine(row, col, 1, -1, symbol)   // diagonal
+                );
             }
-            println()
-        }
-    }
 
-    private fun getPlayerMove(): Pair<Int, Int> {
-        val input: String
-        if (currentPlayer == 'X') {
-            println("Player $currentPlayer turn. Enter choice ('0 1'): ")
-            input = readLine().toString()
-
-        } else {
-            input = (0..2).random().toString() + ' ' + (0..2).random().toString()
-        }
-        val (row, col) = input?.split(" ") ?.map { it.toIntOrNull() ?: -1 } ?: listOf(-1, -1)
-
-        //split input in 2, one for collum one for row.
-        //?turn to number, or -1
-        return row to col
-    }
-
-    private fun isValidMove(row: Int, col: Int): Boolean {
-        return row in 0..2 && col in 0..2 && board[row][col] == ' '
-        //checks if within bounds and empty
-    }
-
-    private fun isWinningMove(row: Int, col: Int): Boolean {
-        return (board[row][0] == currentPlayer && board[row][1] == currentPlayer && board[row][2] == currentPlayer ||
-                board[0][col] == currentPlayer && board[1][col] == currentPlayer && board[2][col] == currentPlayer ||
-                board[0][0] == currentPlayer && board[1][1] == currentPlayer && board[2][2] == currentPlayer ||
-                board[0][2] == currentPlayer && board[1][1] == currentPlayer && board[2][0] == currentPlayer)
-        //logic
-
-    }
-
-    private fun isBoardFull(): Boolean {
-        for (row in board) {
-            for (cell in row) {
-                if (cell == ' ') return false
-                //checks empty
+            // Hilfsfunktion zum Überprüfen einer Linie (horizontal, vertikal, diagonal)
+            function checkLine(row, col, dRow, dCol, symbol) {
+                for (let i = 0; i < 3; i++) {
+                    const r = row + i * dRow;
+                    const c = col + i * dCol;
+                    if (r < 0 || r >= ROWS || c < 0 || c >= COLS || board[r][c] !== symbol) {
+                        return false;
+                    }
+                }
+                return true;
             }
-        }
-        return true
-    }
-}
 
-fun main() {
-    val game = Game()
-    game.startGame()
-}
+            // Funktion zum Überprüfen auf ein Unentschieden
+            function checkDraw() {
+                for (let row of board) {
+                    for (let cell of row) {
+                        if (cell === ' ') {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            // Funktion zum Zurücksetzen des Spiels
+            function resetGame() {
+                currentPlayer = 'X';
+                board = Array.from({ length: ROWS }, () => Array(COLS).fill(' '));
+                renderBoard();
+            }
+
+            // Spiel initialisieren
+            renderBoard();
+        });
+    </script>
+</body>
+</html>
 
